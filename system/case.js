@@ -468,92 +468,14 @@ ${prefix}hd
 
 ダ Other Menu
 ${prefix}qc *[error]*`;
-       await conn.sendMessage(m.chat, {
-
-        image: { url: "https://files.catbox.moe/1xa5yl.jpg" }, // Ganti dengan URL gambar Anda
-
-        caption: menunya,
-
-        footer: `Powered by WhatsApp`,
-
-        contextInfo: {
-
-            mentionedJid: [m.sender],
-
-            forwardingScore: 20,
-
-            isForwarded: true,
-
-            externalAdReply: {
-
-                showAdAttribution: true,
-
-                title: namabot,
-
-                body: "Bot Simpel Made By Nodejs",
-
-                thumbnailUrl: "https://files.catbox.moe/c78ko1.jpg", // Ganti dengan URL thumbnail Anda
-
-                sourceUrl: "www.zannime.my.id", // Ganti dengan URL sumber Anda
-
-                mediaType: 1,
-
-                renderLargerThumbnail: true
-
-            }
-
-        },
-
-        buttons: [
-
-            {
-
-     buttonId: '.ping',
-
-     buttonText: {
-
-       displayText: 'Kecepatan'
-
-     },
-
-     type: 1
-
-   },
-
-   {
-
-     buttonId: '.owner',
-
-     buttonText: {
-
-       displayText: 'Pemilik Bot'
-
-     },
-
-     type: 1
-
-   },
-     {
-
-     buttonId: '.botinfo',
-
-     buttonText: {
-
-       displayText: 'Info Bot'
-
-     },
-
-     type: 1
-
-   },
-
-        ],
-
-        headerType: 1,
-
-        viewOnce: true
-
-    });
+       await conn.sendMessage(
+          m.chat,
+          {
+            image: global.menu,
+            caption: menunya,
+          },
+          { quoted: m }
+        );
         }
         break;
             
@@ -640,7 +562,7 @@ process.exit(1);
             `Penggunaan :\n*#addprem* @tag waktu\n*#addprem* nomor waktu\n\nContoh : #addprem @tag 30d`,
           );
         if (m.mentionedJid.length !== 0) {
-          for (let i = 0; i < m.mentionedJid.length; i++) {
+          for (leti = 0; i < m.mentionedJid.length; i++) {
             addPremiumUser(m.mentionedJid[0], args[1], premium);
           }
           m.reply("Sukses Premium");
