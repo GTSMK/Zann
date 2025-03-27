@@ -443,8 +443,8 @@ ${prefix}tqto
 
 ダ Convert Menu
 ${prefix}sticker
-${prefix}brat *[ New ]*
-${prefix}furrybrat *[ New ]*
+${prefix}brat
+${prefix}furrybrat
 ${prefix}smeme
 ${prefix}swm
 ${prefix}toimage
@@ -467,15 +467,95 @@ ${prefix}instagram
 ${prefix}hd
 
 ダ Other Menu
-${prefix}qc *[error]*`;
-       await conn.sendMessage(
-          m.chat,
-          {
-            image: global.menu,
-            caption: menunya,
-          },
-          { quoted: m }
-        );
+${prefix}qc *[error]*
+${prefix}getidch *[ new ]*
+${prefix}reactch *[ new ]*`;
+       await conn.sendMessage(m.chat, {
+
+        image: { url: "https://files.catbox.moe/1xa5yl.jpg" }, // Ganti dengan URL gambar Anda
+
+        caption: menunya,
+
+        footer: `Powered by WhatsApp`,
+
+        contextInfo: {
+
+            mentionedJid: [m.sender],
+
+            forwardingScore: 20,
+
+            isForwarded: true,
+
+            externalAdReply: {
+
+                showAdAttribution: true,
+
+                title: namabot,
+
+                body: "Bot Simpel Made By Nodejs",
+
+                thumbnailUrl: "https://files.catbox.moe/c78ko1.jpg", // Ganti dengan URL thumbnail Anda
+
+                sourceUrl: "www.zannime.my.id", // Ganti dengan URL sumber Anda
+
+                mediaType: 1,
+
+                renderLargerThumbnail: true
+
+            }
+
+        },
+
+        buttons: [
+
+            {
+
+     buttonId: '.ping',
+
+     buttonText: {
+
+       displayText: 'Kecepatan'
+
+     },
+
+     type: 1
+
+   },
+
+   {
+
+     buttonId: '.owner',
+
+     buttonText: {
+
+       displayText: 'Pemilik Bot'
+
+     },
+
+     type: 1
+
+   },
+     {
+
+     buttonId: '.botinfo',
+
+     buttonText: {
+
+       displayText: 'Info Bot'
+
+     },
+
+     type: 1
+
+   },
+
+        ],
+
+        headerType: 1,
+
+        viewOnce: true
+
+    });
         }
         break;
             
@@ -2033,7 +2113,7 @@ break
     const botStatus = conn.public ? 'Public' : 'Self';
             
             let pesan = `
-*VERSI:* 1.1 (New)
+*VERSI:* 1.2-c
 *NODEJS:* ${nodeVersion}
 *BAILEYS:* ${baileysVersion}
 *SERVER RUN:* ${uptime}
@@ -2041,6 +2121,72 @@ break
             m.reply(pesan)
         }
         break
+
+          case 'getidch': {
+if (!m.quoted) return m.reply('reply saluran channel nya lah')
+try {
+let id = (await m.getQuotedObj()).msg.contextInfo.forwardedNewsletterMessageInfo
+console.log(id)
+const channel = `Name: ${id.newsletterName}\nId: ${id.newsletterJid}`
+console.log(id)
+let textu7 = generateWAMessageFromContent(m.chat, {
+          'viewOnceMessage': {
+            'message': {
+              'messageContextInfo': {
+                'deviceListMetadata': {},
+                'deviceListMetadataVersion': 2
+              },
+              'interactiveMessage': proto.Message.InteractiveMessage.create({
+                'body': proto.Message.InteractiveMessage.Body.create({
+                  'text': 'GET ID CHANNEL'
+                }),
+                'footer': proto.Message.InteractiveMessage.Footer.create({
+                  'text': global.wm.satu
+                }),
+                'header': proto.Message.InteractiveMessage.Header.create({
+                  'title': channel,
+                  'subtitle': '--',
+                  'hasMediaAttachment': false,
+                }),
+                'nativeFlowMessage': proto.Message.InteractiveMessage.NativeFlowMessage.create({
+                  buttons: [ {
+                    name: 'cta_copy',
+    buttonParamsJson: JSON.stringify({
+      display_text: 'copy',
+      id: '123456789',
+      copy_code: id.newsletterJid,
+    }),
+                 },]
+                })
+              })
+            },
+          }
+        }, {
+          quoted: m
+        });
+        conn.relayMessage(m.chat, textu7.message, {});
+ } catch (e) {
+m.reply('Harus chat dari channel bang')
+}
+}
+break 
+          case "reactch": {
+    const args = body.trim().split(/ +/);
+    if (args.length < 3) return m.reply("Format salah! Gunakan: .reactch <idsaluran> <message_id> <emoji>");
+
+    const channelId = args[0];
+    const messageId = args[1];
+    const emoji = args[2];
+
+    try {
+        await conn.newsletterReactMessage(channelId, messageId, emoji);
+        m.reply(`Berhasil mengirim reaksi ${emoji} ke pesan dengan ID ${messageId} di saluran ${channelId}.`);
+    } catch (error) {
+        console.error("Gagal mengirim reaksi:", error);
+        m.reply("Gagal mengirim reaksi. Pastikan ID saluran dan pesan benar.");
+    }
+    break;
+          }
             
       default:
 
@@ -2085,9 +2231,33 @@ break
         }
     }
   } catch (err) {
-    conn.sendText(numberowner + "@s.whatsapp.net", util.format(err), m);
-    console.log(util.format(err));
-  }
+    console.log(util.format(err))
+        let e = String(err)
+        if (!m.isGroup && !m.key.fromMe) {
+        const pushname = m.pushName || "No Name";
+    let pesan = `『 REPORT MESSAGE 』
+    
+» Sent Time : ${waktu}
+» Sender Name : ${pushname}
+» Chat ID : ${m.chat.split('@')[0]}
+» Chat Name : ${budy}
+» Message Type : ${m.mtype}
+» Message TypeError : 
+
+${util.format(err)}
+
+» Author By : Zann
+`;
+
+    conn.sendMessage(numberowner + "@s.whatsapp.net", {
+        text: pesan,
+        contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true
+        }
+    }); 
+};
+}
 };
 let file = require.resolve(__filename);
 fs.watchFile(file, () => {
