@@ -21,6 +21,51 @@ let chat = await chat('1+1=')
 console.log(chat)
 */
 
+async function remini(urlPath, method) {
+return new Promise(async (resolve, reject) => {
+let Methods = ["enhance", "recolor", "dehaze"]
+Methods.includes(method) ? (method = method) : (method = Methods[0])
+let buffer,
+Form = new FormData(),
+scheme = "https" + "://" + "inferenceengine" + ".vyro" + ".ai/" + method;
+Form.append("model_version", 1, {
+"Content-Transfer-Encoding": "binary",
+contentType: "multipart/form-data; charset=uttf-8",
+})
+Form.append("image", Buffer.from(urlPath), {
+filename: "enhance_image_body.jpg",
+contentType: "image/jpeg",
+})
+Form.submit(
+{
+url: scheme,
+host: "inferenceengine" + ".vyro" + ".ai",
+path: "/" + method,
+protocol: "https:",
+headers: {
+"User-Agent": "okhttp/4.9.3",
+Connection: "Keep-Alive",
+"Accept-Encoding": "gzip",
+},
+},
+function (err, res) {
+if (err) reject()
+let data = []
+res
+.on("data", function (chunk, resp) {
+data.push(chunk)
+})
+.on("end", () => {
+resolve(Buffer.concat(data))
+})
+res.on("error", (e) => {
+reject()
+})
+}
+)
+})
+}
+
 async function text2img(prompt) {
     try {
         let data = new FormData();
@@ -205,6 +250,31 @@ return result
 } catch (err) {
 throw err
 }
+}
+
+async function xhentai(page) {
+    return new Promise((resolve, reject) => {
+    const page = Math.floor(Math.random() * 1153)
+        axios.get('https://sfmcompile.club/page/' + page)
+            .then((data) => {
+                const $ = cheerio.load(data.data);
+                const hasil = [];
+                $('#primary > div > div > ul > li > article').each(function (a, b) {
+                    hasil.push({
+                        title: $(b).find('header > h2').text(),
+                        link: $(b).find('header > h2 > a').attr('href'),
+                        category: $(b).find('header > div.entry-before-title > span > span').text().replace('in ', ''),
+                        share_count: $(b).find('header > div.entry-after-title > p > span.entry-shares').text(),
+                        views_count: $(b).find('header > div.entry-after-title > p > span.entry-views').text(),
+                        type: $(b).find('source').attr('type') || 'image/jpeg',
+                        video_1: $(b).find('source').attr('src') || $(b).find('img').attr('data-src'),
+                        video_2: $(b).find('video > a').attr('href') || ''
+                    });
+                });
+                resolve(hasil);
+            })
+            .catch(reject);
+    });
 } 
 
 
@@ -323,4 +393,4 @@ async function transcribe(buffer) {
     return result
 }
 
-module.exports = { muslimai, mediaFire, text2img, chat, transcribe, terabox, nhentaiSearch, nhentaiDL }
+module.exports = { muslimai, mediaFire, text2img, chat, transcribe, terabox, nhentaiSearch, nhentaiDL, xhentai, remini }
