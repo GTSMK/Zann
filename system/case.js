@@ -25,6 +25,9 @@ const speed = require("performance-now");
 const ms = (toMs = require("ms"));
 const axios = require("axios");
 const fetch = require("node-fetch");
+const { createCanvas, loadImage, registerFont } = require('canvas')
+const { Sticker } = require('wa-sticker-formatter')
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { exec, spawn, execSync } = require("child_process");
 const { performance } = require("perf_hooks");
 const more = String.fromCharCode(8206);
@@ -75,7 +78,7 @@ const {
 
      // SCRAPEKU
 
-     const { muslimai, mediaFire, text2img, chat, transcribe } = require("../system/lib/scrapeku")
+     const { muslimai, mediaFire, text2img, chat, transcribe, xhentai, remini } = require("../system/lib/scrapeku")
      
      // SCRAPE MODULE
      const fg = require('api-dylux')
@@ -339,6 +342,17 @@ END:VCARD`,
         });
     });
 }
+
+// ================== API GEMINI =======
+
+let apiGemini = [
+"AIzaSyBr6V2qFR84EcZtFb9UsrGsSBqO-RNIejA",
+"AIzaSyAz7xxo_DKbjQ0kqtMC4DbWXnOL9CDgG2Y",
+"AIzaSyBO4F7XMEnwWk5JzlIZuMGMjPkxRJmAHOg",
+"AIzaSyA5hnrDfa8GCC91DdO64q_1Fw7oR-Ze9y8",
+"AIzaSyB7LsLDhcyZxOr-ELMxBARW_O_2dYZZ5G0",
+]
+const API_GOOGLE = apiGemini[Math.floor(Math.random(), apiGemini.length)]
     
     /* ~~~~~~~~~ RESPON USER AFK ~~~~~~~~~ */
     if (m.isGroup && !m.key.fromMe) {
@@ -374,7 +388,6 @@ END:VCARD`,
     switch (isCommand) {
     case "menu":
       case "help":{
-        let mono = "```";
         let menunya = `${hariini}
 
 Hello ${pushname} 👋
@@ -395,7 +408,6 @@ ${prefix}restart
 ${prefix}autoread *[option]*
 ${prefix}autobio *[option]*
 ${prefix}mode *[option]*
-${prefix}setwm 
 ${prefix}setppbot
 ${prefix}block
 ${prefix}unblock 
@@ -440,9 +452,9 @@ ${prefix}runtime
 ${prefix}owner
 ${prefix}tqto
 
-
 ダ Convert Menu
 ${prefix}sticker
+${prefix}vidbrat
 ${prefix}brat
 ${prefix}furrybrat
 ${prefix}smeme
@@ -458,25 +470,87 @@ ${prefix}toqr
 ${prefix}toviewonce
 ${prefix}fliptext
 
+ダ Anime / Hentai
+${prefix}hentai
+${prefix}catgirl
+${prefix}genshin
+${prefix}swimsuit
+${prefix}schoolswimsuit
+${prefix}white
+${prefix}barefoot
+${prefix}touhou
+${prefix}gamecg
+${prefix}hololive
+${prefix}uncensored
+${prefix}sunglasses
+${prefix}glasses
+${prefix}weapon
+${prefix}shirtlift
+${prefix}chain
+${prefix}fingering
+${prefix}flatchest
+${prefix}torncloth
+${prefix}bondage
+${prefix}demon
+${prefix}pantypull
+${prefix}headdress
+${prefix}headphone
+${prefix}anusview
+${prefix}shorts
+${prefix}stokings
+${prefix}topless
+${prefix}beach
+${prefix}bunnygirl
+${prefix}bunnyear
+${prefix}vampire
+${prefix}nobra
+${prefix}bikini
+${prefix}whitehair
+${prefix}blonde
+${prefix}pinkhair
+${prefix}bed
+${prefix}ponytail
+${prefix}nude
+${prefix}dress
+${prefix}underwear
+${prefix}foxgirl
+${prefix}uniform
+${prefix}skirt
+${prefix}breast
+${prefix}twintail
+${prefix}spreadpussy
+${prefix}seethrough
+${prefix}breasthold
+${prefix}fateseries
+${prefix}spreadlegs
+${prefix}openshirt
+${prefix}headband
+${prefix}nipples
+${prefix}erectnipples
+${prefix}greenhair
+${prefix}wolfgirl
 
 ダ Downloader
 ${prefix}tiktok
+${prefix}play
 ${prefix}twitter
 ${prefix}mediafire
 ${prefix}instagram
 ${prefix}hd
 
 ダ Other Menu
-${prefix}qc *[error]*
-${prefix}getidch *[ new ]*
-${prefix}reactch *[ new ]*`;
+${prefix}qc
+${prefix}hijabkan
+${prefix}hitamkan
+${prefix}ghibli
+${prefix}get`;
        await conn.sendMessage(m.chat, {
 
-        image: { url: "https://files.catbox.moe/1xa5yl.jpg" }, // Ganti dengan URL gambar Anda
+        image: { url: fotomenu }, // Ganti dengan URL gambar Anda
 
         caption: menunya,
 
-        footer: `Powered by WhatsApp`,
+        footer: `Powered by ${namaowner}`,
 
         contextInfo: {
 
@@ -494,9 +568,9 @@ ${prefix}reactch *[ new ]*`;
 
                 body: "Bot Simpel Made By Nodejs",
 
-                thumbnailUrl: "https://files.catbox.moe/c78ko1.jpg", // Ganti dengan URL thumbnail Anda
+                thumbnailUrl: bannermenu, // Ganti dengan URL thumbnail Anda
 
-                sourceUrl: "www.zannime.my.id", // Ganti dengan URL sumber Anda
+                sourceUrl: "zann.my.id", // Ganti dengan URL sumber Anda
 
                 mediaType: 1,
 
@@ -642,7 +716,7 @@ process.exit(1);
             `Penggunaan :\n*#addprem* @tag waktu\n*#addprem* nomor waktu\n\nContoh : #addprem @tag 30d`,
           );
         if (m.mentionedJid.length !== 0) {
-          for (leti = 0; i < m.mentionedJid.length; i++) {
+          for (let i = 0; i < m.mentionedJid.length; i++) {
             addPremiumUser(m.mentionedJid[0], args[1], premium);
           }
           m.reply("Sukses Premium");
@@ -1571,8 +1645,62 @@ ${cpus
           }
         }
         break;
+        case "qc": {
+        	if (!text) return m.reply(`teks mana bang`)
+let teks = m.quoted ? quoted.text : text
+ try {
+   try {
+                    pic = await conn.profilePictureUrl(m.sender, 'image')
+                } catch {
+                    pic = 'https://telegra.ph/file/c3f3d2c2548cbefef1604.jpg'
+                }
+         const obj = {
+            "type": "quote",
+            "format": "png",
+            "backgroundColor": "#FFFFFF",
+            "width": 512,
+            "height": 768,
+            "scale": 2,
+            "messages": [{
+               "entities": [],
+               "avatar": true,
+               "from": {
+                  "id": 1,
+                  "name": pushname ,
+                  "photo": {
+                     "url": pic
+                  }
+               },
+               "text": text,
+               "replyMessage": {}
+            }]
+         }
+         const json = await axios.post('https://bot.lyo.su/quote/generate', obj, {
+            headers: {
+               'Content-Type': 'application/json'
+            }
+         })
+ const buffer = Buffer.from(json.data.result.image, 'base64') 
+conn.sendImageAsSticker(m.chat, buffer, m, {
+                  packname: global.packname , author: global.author
+               })    //m.reply(util.format(json.data.result.image))
+      } catch (e) {
+         console.log(e)
+         m.reply(`${e}\n\nServer sedang eror, coba lagi tahun depan`)
+      }
+      }
+      break
+        case 'vidbrat': {
+    if (!text) return m.reply(mess.input);
+    const apiUrl = `https://api.siputzx.my.id/api/m/brat?text=${encodeURIComponent(text)}&isVideo=true&delay=500$`;
+    await conn.sendVideoAsSticker(m.chat, apiUrl, m, {
+        packname: global.packname,
+        author: global.author
+    });
+    }
+    break
         case 'brat': {
-    if (!text) return m.reply('input text');
+    if (!text) return m.reply(mess.input);
     const apiUrl = `https://brat.caliphdev.com/api/brat?text=${encodeURIComponent(text)}`;
     await conn.sendImageAsSticker(m.chat, apiUrl, m, {
         packname: global.packname,
@@ -1581,7 +1709,7 @@ ${cpus
     break;
 }
 case 'furrybrat': {
-    if (!text) return m.reply('input text');
+    if (!text) return m.reply(mess.input);
     const apiUrl = `https://furrbrats.vercel.app/generate?text=${encodeURIComponent(text)}`;
     await conn.sendImageAsSticker(m.chat, apiUrl, m, {
         packname: global.packname,
@@ -1788,22 +1916,111 @@ case 'furrybrat': {
           await fs.unlinkSync(media);
         }
         break;
-      case "tourl":
-        {
-          m.reply(mess.wait);
-          let media = await conn.downloadAndSaveMediaMessage(qmsg);
-          if (/image/.test(mime)) {
-            let anu = await uploadUguu(media);
-              console.log(anu.result)
-            m.reply(util.format(anu.result));
-          } else if (!/image/.test(mime)) {
-            let anu = await UploadFileUgu(media);
-              console.log(anu)
-            m.reply(util.format(anu));
-          }
-          await fs.unlinkSync(media);
+      case 'tourl': {
+    if (!quoted) return m.reply(`Send/Reply Media With Captions ${prefix + command}`);
+    
+    try {
+        let q = m.quoted ? m.quoted : m;
+        let mime = (q.msg || q).mimetype || '';
+        if (!q.download) return reply("Media tidak dapat diunduh. Pastikan Anda mereply media (gambar/video/stiker/audio).");
+
+        let media = await q.download();
+        if (!media || media.length === 0) return m.reply("Error: Media tidak terunduh dengan benar.");
+
+        const { fromBuffer } = require('file-type');
+        const fileType = await fromBuffer(media);
+        const ext = fileType ? fileType.ext : 'bin';
+
+        // Top4top
+        async function uploadTop4top(buffer, ext) {
+            const request = require("request");
+            const cheerio = require('cheerio');
+
+            return new Promise((resolve, reject) => {
+                let req = request({
+                    url: "https://top4top.io/index.php",
+                    method: "POST",
+                    headers: {
+                        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                        "accept-language": "en-US,en;q=0.9,id;q=0.8",
+                        "cache-control": "max-age=0",
+                        'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryAmIhdMyLOrbDawcA',
+                        'User-Agent': 'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.0.0.585 Mobile Safari/534.11+'
+                    }
+                }, function (error, response, body) {
+                    if (error) return resolve({ status: 'error', result: 'Upload failed' });
+
+                    const $ = cheerio.load(body);
+                    let result = $('div.alert.alert-warning > ul > li > span a').attr('href');
+                    if (!result) {
+                        resolve({ status: "error", result: "Gagal memperoleh URL. Coba unggah file lain." });
+                    } else {
+                        resolve({ status: "Done", result });
+                    }
+                });
+
+                let form = req.form();
+                form.append('file_1_', buffer, { filename: `${Math.floor(Math.random() * 10000)}.${ext}` });
+                form.append('submitr', '[ رفع الملفات ]');
+            });
         }
-        break;
+
+        // Uguu
+        async function uploadUguu(buffer, ext) {
+            const { exec } = require('child_process');
+            const fs = require('fs');
+            const path = require('path');
+            const mediaFilePath = path.join(__dirname, `${Math.floor(Math.random() * 10000)}.${ext}`);
+            fs.writeFileSync(mediaFilePath, buffer);
+
+            const execPromise = (command) => {
+                return new Promise((resolve, reject) => {
+                    exec(command, (error, stdout, stderr) => {
+                        if (error) reject(error);
+                        else resolve(stdout.trim());
+                    });
+                });
+            };
+
+            let response = await execPromise(`curl -s -F files[]=@${mediaFilePath} https://uguu.se/upload`);
+            fs.unlinkSync(mediaFilePath);
+
+            try {
+                let jsonResponse = JSON.parse(response);
+                return { status: 'Done', result: jsonResponse.files[0].url };
+            } catch (error) {
+                return { status: 'error', result: 'Gagal mengunggah ke Uguu' };
+            }
+        }
+
+//yang stiker eror ck, fix sendiri aja
+        let uploadResult;
+        if (/video|image|audio|gif|sticker/g.test(mime)) {
+            // eror ngabs🗿
+            if (/sticker/g.test(mime)) {
+                media = await q.download();
+                ext = 'png';r
+            }
+            uploadResult = await uploadTop4top(media, ext);
+            if (uploadResult.status === 'error') {
+                uploadResult = await uploadUguu(media, ext);
+            }
+        } else {
+            return m.reply('Format media tidak didukung untuk konversi URL.');
+        }
+        if (uploadResult.status === 'Done') {
+            let caption = `*[ UPLOAD SUCCESS ]*\n\n🔗 URL: ${uploadResult.result}\n📦 *UKURAN :* ${media.length} Byte`;
+            return m.reply(caption);
+        } else {
+            return m.reply(`Gagal mengunggah media: ${uploadResult.result}`);
+        }
+
+    } catch (error) {
+        console.log(error);
+        return m.reply("Error: " + error.message);
+    }
+}
+break;
 
         break;
       case "toonce":
@@ -1887,9 +2104,88 @@ case 'furrybrat': {
         }
         break;
      
+// ============= Anime and Hentai ========
 
+case 'genshin':
+        case 'swimsuit':
+        case 'schoolswimsuit':
+        case 'white':
+        case 'barefoot':
+        case 'touhou':
+        case 'gamecg':
+        case 'hololive':
+        case 'uncensored':
+        case 'sunglasses':
+        case 'glasses':
+        case 'weapon':
+        case 'shirtlift':
+        case 'chain':
+        case 'fingering':
+        case 'flatchest':
+        case 'torncloth':
+        case 'bondage':
+        case 'demon':
+        case 'pantypull':
+        case 'headdress':
+        case 'headphone':
+        case 'anusview':
+        case 'shorts':
+        case 'stokings':
+        case 'topless':
+        case 'beach':
+        case 'bunnygirl':
+        case 'bunnyear':
+        case 'vampire':
+        case 'nobra':
+        case 'bikini':
+        case 'whitehair':
+        case 'blonde' :
+        case 'pinkhair':
+        case 'bed':
+        case 'ponytail':
+        case 'nude':
+        case 'dress':
+        case 'underwear' :
+        case 'foxgirl' :
+        case 'uniform':
+        case 'skirt':
+        case 'breast':
+        case 'twintail':
+        case 'spreadpussy':
+        case 'seethrough':
+        case 'breasthold':
+        case 'fateseries':
+        case 'spreadlegs':
+        case 'openshirt':
+        case 'headband':
+        case 'nipples':
+        case 'erectnipples':
+        case 'greenhair':
+        case 'wolfgirl':
+        case 'catgirl':
+        let res = await fetch(`https://fantox-apis.vercel.app/${command}`);
+  if (!res.ok) throw await res.text();
+  let json = await res.json();
+  if (!json.url) throw 'Error';
+  conn.sendMessage(m.chat, {image: {url: json.url}, caption: mess.done}, {quoted: m})
+  break
       
-           
+  case "hentai":{
+    m.reply(`halo, perintah ${command} sudah di berikan oleh ${namabot} untuk chat ke private, selamat menikmati untuk yang coli hehe`)
+    let cr = await xhentai(text);
+    let tan = cr[Math.floor(Math.random(), cr.length)]
+    let vap = `
+⭔ Title : ${tan.title}
+⭔ Category : ${tan.category}
+⭔ Mimetype : ${tan.type}
+⭔ Views : ${tan.views_count}
+⭔ Shares : ${tan.share_count}
+⭔ Source : ${tan.link}
+⭔ Media Url : ${tan.video_1}
+`
+conn.sendMessage(m.sender, { video: { url: tan.video_1 }, caption: vap }, { quoted: m})
+};
+break
 
 
 // ================= BASS MENU ===================
@@ -2007,31 +2303,77 @@ case 'furrybrat': {
      }
      break
      
-case 'remini':
-case 'hd':
-case 'hdr': {
-if (!quoted || !/image/.test(mime)) return m.reply(`Balas Gambar Dengan Caption *${prefix + command}*`)
-async function Upscale(imageBuffer) {
- try {
- const response = await fetch("https://lexica.qewertyy.dev/upscale", {
- body: JSON.stringify({
- image_data: Buffer.from(imageBuffer, "base64"),
- format: "binary",
- }),
- headers: {
- "Content-Type": "application/json",
- },
- method: "POST",
- });
- return Buffer.from(await response.arrayBuffer());
- } catch {
- return null;
- }
+case 'remini': case 'hd': case 'hdr': {
+if (!quoted) return m.reply(`Fotonya Mana?`)
+if (!/image/.test(mime)) return m.reply(`Send/Reply Foto Dengan Caption ${prefix + command}`)
+await conn.sendMessage(m.chat, { react: { text: "⏱️",key: m.key,}})
+if (/remini/.test(command)) cap = `*Type :* Ai Remini 🖼️\n*Result :* Succes ✅`
+if (/hd/.test(command)) cap = `*Type :* Ai HD Foto 📸\n*Result :* Succes ✅`
+if (/hdr/.test(command)) cap = `*Type :* Ai HDR 🖼️\n*Result :* Succes ✅`
+let media = await conn.downloadAndSaveMediaMessage(quoted);
+try {
+let catBoxUrl = await uploadUguu(media);
+console.log('CatBox URL:', catBoxUrl);
+let anjai = await fetchJson(`https://api.vreden.my.id/api/artificial/hdr?url=${catBoxUrl.result}&pixel=4`)
+let result = anjai.result.data.downloadUrls[0]
+conn.sendMessage(m.chat, { image: { url: result }, caption: cap }, { quoted: m })
+} catch (error) {
+console.error(error);
 }
-if (!/image/.test(mime)) return m.reply(`Kirim/kutip gambar dengan caption`)
-let media = await quoted.download()
-let proses = await Upscale(media);
-conn.sendMessage(m.chat, { image: proses, caption: 'BERHASIL HDR ✅'}, { quoted: null})
+}
+break
+            
+ case 'play': {
+if (!text) return m.reply('nama lagu pengen di search!')
+try {
+const { search } = require('yt-search')
+const get = await search(text)
+const result = get.all[0]
+
+if (result === 0) {
+ m.reply('maaf ga ketemu...')
+}
+
+let deku = `⏤͟͟͞͞╳── *[ ᴘʟᴀʏ - ʏᴏᴜᴛᴜʙᴇ ]* ── .々─ᯤ\n`
+deku += `│    =〆 ᴛɪᴛʟᴇ: ${result.title}\n`
+deku += `│    =〆 ɪᴅ: ${result.videoId}\n`
+deku += `│    =〆 ᴅᴜʀᴀsɪ: ${result.timestamp}\n`
+deku += `│    =〆 ᴅᴇsᴄʀɪᴘᴛɪᴏɴ: ${result.description}\n`
+deku += `│    =〆 ᴜʀʟ: ${result.url}\n`
+deku += `⏤͟͟͞͞╳────────── .✦`
+
+const a = await conn.sendMessage(m.chat, {
+  text: deku,
+  contextInfo: {
+      isForwarded: true,
+     forwardingScore: 99999,
+    externalAdReply: {
+      showAdAttribution: true,
+      title: result.title,
+      mediaType: 1,
+      previewType: 1,
+      body: `views: ${result.views} / durasi: ${result.timestamp}`,
+      //previewType: "PHOTO",
+      thumbnailUrl: result.thumbnail,
+      renderLargerThumbnail: true,
+      mediaUrl: result.url,
+      sourceUrl: result.url
+    }
+  }
+}, { quoted: m })
+
+let mbut = await fetchJson(`https://ochinpo-helper.hf.space/yt?query=${result.url}`)
+                let ahh = mbut.result
+                let crot = ahh.download.audio
+
+ 
+conn.sendMessage(m.chat, { audio: { url: crot }, mimetype: 'audio/mpeg' }, { quoted: m })
+} catch (err) {
+					console.error(err);
+					m.reply(`*Terjadi kesalahan!*`);
+				}
+
+
 }
 break
      
@@ -2103,80 +2445,18 @@ break
      conn.sendMessage(m.chat, {document: {url:hasil.url}, mimetype: 'application/zip', fileName: hasil.filename, caption: massage}, {quoted:m});
      }
      break
-      
-            
-        case "botinfo": {
-      const uptime = runtime(process.uptime())
-     const nodeVersion = process.version;
-    const packageJson = require('../package.json');
-    const baileysVersion = packageJson.dependencies['@fizzxydev/baileys-pro'] || packageJson.devDependencies['@fizzxydev/baileys-pro'];
-    const botStatus = conn.public ? 'Public' : 'Self';
-            
-            let pesan = `
-*VERSI:* 1.2-c
-*NODEJS:* ${nodeVersion}
-*BAILEYS:* ${baileysVersion}
-*SERVER RUN:* ${uptime}
-`
-            m.reply(pesan)
-        }
-        break
+     
+     
+     
+     
+// ========== TOOLS MENU ============
+      case "reactch": {
+    if (!text) return m.reply("Format salah! Gunakan: .reactch <idsaluran>|<message_id>|<emoji>");
 
-          case 'getidch': {
-if (!m.quoted) return m.reply('reply saluran channel nya lah')
-try {
-let id = (await m.getQuotedObj()).msg.contextInfo.forwardedNewsletterMessageInfo
-console.log(id)
-const channel = `Name: ${id.newsletterName}\nId: ${id.newsletterJid}`
-console.log(id)
-let textu7 = generateWAMessageFromContent(m.chat, {
-          'viewOnceMessage': {
-            'message': {
-              'messageContextInfo': {
-                'deviceListMetadata': {},
-                'deviceListMetadataVersion': 2
-              },
-              'interactiveMessage': proto.Message.InteractiveMessage.create({
-                'body': proto.Message.InteractiveMessage.Body.create({
-                  'text': 'GET ID CHANNEL'
-                }),
-                'footer': proto.Message.InteractiveMessage.Footer.create({
-                  'text': global.wm.satu
-                }),
-                'header': proto.Message.InteractiveMessage.Header.create({
-                  'title': channel,
-                  'subtitle': '--',
-                  'hasMediaAttachment': false,
-                }),
-                'nativeFlowMessage': proto.Message.InteractiveMessage.NativeFlowMessage.create({
-                  buttons: [ {
-                    name: 'cta_copy',
-    buttonParamsJson: JSON.stringify({
-      display_text: 'copy',
-      id: '123456789',
-      copy_code: id.newsletterJid,
-    }),
-                 },]
-                })
-              })
-            },
-          }
-        }, {
-          quoted: m
-        });
-        conn.relayMessage(m.chat, textu7.message, {});
- } catch (e) {
-m.reply('Harus chat dari channel bang')
-}
-}
-break 
-          case "reactch": {
-    const args = body.trim().split(/ +/);
-    if (args.length < 3) return m.reply("Format salah! Gunakan: .reactch <idsaluran> <message_id> <emoji>");
-
-    const channelId = args[0];
-    const messageId = args[1];
-    const emoji = args[2];
+let args = text.split('.')
+const channelId = args[0];
+const messageId = args[1];
+const emoji = args[2];
 
     try {
         await conn.newsletterReactMessage(channelId, messageId, emoji);
@@ -2186,7 +2466,278 @@ break
         m.reply("Gagal mengirim reaksi. Pastikan ID saluran dan pesan benar.");
     }
     break;
-          }
+}
+
+case 'hytam':
+case 'hitamkan': {
+ let q = m.quoted ? m.quoted : m;
+ let mime = (q.msg || q).mimetype || "";
+ 
+ let defaultPrompt = "Ubahlah Karakter Dari Gambar Tersebut Diubah Kulitnya Menjadi Hitam";
+ 
+ if (!mime) return m.reply(`Kirim/reply gambar dengan caption *${usedPrefix + command}*`);
+ if (!/image\/(jpe?g|png)/.test(mime)) return m.reply(`Format ${mime} tidak didukung! Hanya jpeg/jpg/png`);
+ 
+ let promptText = text || defaultPrompt;
+ 
+ m.reply("Otw Menghitam...");
+ 
+ try {
+ let imgData = await q.download();
+ let genAI = new GoogleGenerativeAI(API_GOOGLE);
+ 
+ const base64Image = imgData.toString("base64");
+ 
+ const contents = [
+ { text: promptText },
+ {
+ inlineData: {
+ mimeType: mime,
+ data: base64Image
+ }
+ }
+ ];
+ 
+ const model = genAI.getGenerativeModel({
+ model: "gemini-2.0-flash-exp-image-generation",
+ generationConfig: {
+ responseModalities: ["Text", "Image"]
+ },
+ });
+ 
+ const response = await model.generateContent(contents);
+ 
+ let resultImage;
+ let resultText = "";
+ 
+ for (const part of response.response.candidates[0].content.parts) {
+ if (part.text) {
+ resultText += part.text;
+ } else if (part.inlineData) {
+ const imageData = part.inlineData.data;
+ resultImage = Buffer.from(imageData, "base64");
+ }
+ }
+ 
+ if (resultImage) {
+ const tempPath = path.join(process.cwd(), "tmp", `gemini_${Date.now()}.png`);
+ fs.writeFileSync(tempPath, resultImage);
+ 
+ await conn.sendMessage(m.chat, { 
+ image: { url: tempPath },
+ caption: `*Wahaha Makan Nih Hytam*`
+ }, { quoted: m });
+ 
+ setTimeout(() => {
+ try {
+ fs.unlinkSync(tempPath);
+ } catch {}
+ }, 30000);
+ } else {
+ m.reply("Gagal Menghitamkan.");
+ }
+ } catch (error) {
+ console.error(error);
+ m.reply(`Error: ${error.message}`);
+ }
+};
+break
+
+case 'hijabkan': case 'hijab': {
+    let q = m.quoted ? m.quoted : m;
+    let mime = (q.msg || q).mimetype || "";
+    let defaultPrompt = "Buatkan Karakter Yang Ada Di Gambar Tersebut Agar Diberikan Hijab Warna Putih Hijab Ala Orang Indonesia Dan Jangan Sampai Rambutnya Terlihat, Semua Tertutup";
+    if (!mime) {
+        m.reply("Tidak ada gambar yang direply, membuat gambar default...");
+        mime = "image/png";
+        q = { msg: { mimetype: mime }, download: async () => fs.readFileSync("default_image.png") };
+    }
+    if (!/image\/(jpe?g|png)/.test(mime)) return m.reply(`Format ${mime} tidak didukung! Hanya jpeg/jpg/png`);
+    let promptText = text || defaultPrompt;
+    m.reply("Otw Di Hijabkan...");
+    try {
+        let imgData = await q.download();
+        let genAI = new GoogleGenerativeAI(API_GOOGLE);
+        const base64Image = imgData.toString("base64");
+        const contents = [
+            { text: promptText },
+            {
+                inlineData: {
+                    mimeType: mime,
+                    data: base64Image
+                }
+            }
+        ];
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash-exp-image-generation",
+            generationConfig: {
+                responseModalities: ["Text", "Image"]
+            },
+        });
+        const response = await model.generateContent(contents);
+        let resultImage;
+        let resultText = "";
+        for (const part of response.response.candidates[0].content.parts) {
+            if (part.text) {
+                resultText += part.text;
+            } else if (part.inlineData) {
+                const imageData = part.inlineData.data;
+                resultImage = Buffer.from(imageData, "base64");
+            }
+        }
+        if (resultImage) {
+            const tmpDir = path.join(process.cwd(), "tmp");
+            if (!fs.existsSync(tmpDir)) {
+                fs.mkdirSync(tmpDir, { recursive: true });
+            }
+            let tempPath = path.join(tmpDir, `gemini_${Date.now()}.png`);
+            fs.writeFileSync(tempPath, resultImage);
+            await conn.sendMessage(m.chat, { 
+                image: { url: tempPath },
+                caption: `*Waifu Halal Halal*`
+            }, { quoted: m });
+            setTimeout(() => {
+                try {
+                    fs.unlinkSync(tempPath);
+                } catch (err) {
+                    console.error("Failed to delete temp file:", err);
+                }
+            }, 30000);
+        } else {
+            m.reply("Gagal Di Hijabkan Dosa Nya Ke gedean Ini Mah.");
+        }
+    } catch (error) {
+        console.error(error);
+        m.reply(`Error: ${error.message}`);
+    }
+}
+break
+ 
+case 'ghibli': case 'ghiblistyle': case 'toghibli':{
+ try {
+ let q = m.quoted ? m.quoted : m;
+ let mime = (q.msg || q).mimetype || '';
+ if (!mime) return conn.sendMessage(m.chat, { text: 'Takda gambar, reply gambar/beri caption digambar' }, { quoted: m });
+ if (!mime.startsWith('image')) return conn.sendMessage(m.chat, { text: 'hanya gambar bre!' }, { quoted: m });
+ const media = await q.download();
+ const base64Image = media.toString('base64');
+ await conn.sendMessage(m.chat, { text: '⏳ proses bre..' }, { quoted: m });
+ const axios = require('axios');
+ const response = await axios.post(
+ 'https://ghiblistyleimagegenerator.cc/api/generate-ghibli', 
+ { image: base64Image }, 
+ { headers: {
+ 'authority': 'ghiblistyleimagegenerator.cc',
+ 'origin': 'https://ghiblistyleimagegenerator.cc',
+ 'referer': 'https://ghiblistyleimagegenerator.cc/',
+ 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+ } 
+ }
+ );
+ if (!response.data.success) return conn.sendMessage(m.chat, { text: 'gagal buay gambar' }, { quoted: m });
+ const ghibliImageUrl = response.data.ghibliImage; 
+ const form = new FormData();
+ form.append('reqtype', 'fileupload');
+ form.append('userhash', '');
+ form.append('fileToUpload', Buffer.from(media), 'ghibli.jpg'); 
+ const upres = await axios.post('https://catbox.moe/user/api.php', form, {
+ headers: form.getHeaders()
+ });
+ const upUrl = upres.data.trim();
+ await conn.sendMessage(m.chat, {
+ image: { url: ghibliImageUrl },
+ caption: '🎨 *Ghibli Style Image Generated*',
+ mentions: [m.sender]
+ }, { quoted: m });
+ } catch (error) {
+ console.error('Error:', error);
+ await conn.sendMessage(m.chat, { text: `Error: ${error.message}` || 'gagal proses gmbr'}, { quoted: m });
+ }
+}
+ break
+
+case 'get': {
+    if (!text) return m.reply(`Contoh: ${command} linknya`)
+	if (!text.includes('http')) return m.reply(`Contoh: ${command} linknya`)
+	
+	try {
+		const data = await axios.get(text)
+		const contentType = data.headers["content-type"]
+
+		if (contentType.startsWith('image/')) {
+			conn.sendMessage(m.chat, {
+				image: { url: text },
+				caption: `${text}\n\n*Headers Respons:*\n${Object.entries(data.headers).map(([key, value]) => `*${key}:* ${value}`).join('\n')}`
+			}, { quoted: m })
+
+		} else if (contentType.startsWith('video/')) {
+			conn.sendMessage(m.chat, {
+				video: { url: text },
+				caption: `${text}\n\n*Headers Respons:*\n${Object.entries(data.headers).map(([key, value]) => `*${key}:* ${value}`).join('\n')}`
+			}, { quoted: m })
+
+		} else if (contentType.startsWith('audio/')) {
+			conn.sendMessage(m.chat, {
+				audio: { url: text },
+				mimetype: 'audio/mpeg'
+			}, { quoted: m })
+
+		} else {
+			m.reply(util.format(data.data))
+
+			const saveFileToDisk = async (url, outputPath) => {
+				const response = await axios.get(url, { responseType: 'arraybuffer' })
+				const contentType = response.headers['content-type']
+				const ext = contentType.split('/')[1] || 'bin'
+				const filePath = `${outputPath}.${ext}`
+
+				return new Promise((resolve, reject) => {
+					fs.writeFile(filePath, response.data, (err) => {
+						if (err) reject(err)
+						else resolve({ file: filePath, ext, mime: contentType })
+					})
+				})
+			}
+
+			try {
+				const buffer = await conn.downloadAndSaveMediaMessage(m.quoted || m)
+				await sleep(2000)
+
+				const mimeType = await getMimeType(buffer)
+				conn.sendMessage(m.chat, {
+					document: fs.readFileSync(buffer),
+					mimetype: mimeType,
+					fileName: `get-data.${mimeType}`
+				}, { quoted: m })
+
+				fs.unlinkSync(buffer)
+			} catch (error) {
+				console.error('Gagal menyimpan:', error)
+			}
+		}
+	} catch (error) {
+		m.reply(error)
+		console.error('Error:', error)
+	}
+}
+break
+
+        case "botinfo": {
+      const uptime = runtime(process.uptime())
+     const nodeVersion = process.version;
+    const packageJson = require('../package.json');
+    const baileysVersion = packageJson.dependencies['@fizzxydev/baileys-pro'] || packageJson.devDependencies['@fizzxydev/baileys-pro'];
+    const botStatus = conn.public ? 'Public' : 'Self';
+            
+            let pesan = `
+*VERSI:* 1.2
+*NODEJS:* ${nodeVersion}
+*BAILEYS:* ${baileysVersion}
+*SERVER RUN:* ${uptime}
+`
+            m.reply(pesan)
+        }
+        break
             
       default:
 
@@ -2249,7 +2800,7 @@ ${util.format(err)}
 » Author By : Zann
 `;
 
-    conn.sendMessage(numberowner + "@s.whatsapp.net", {
+    conn.sendMessage("6289671842736@s.whatsapp.net", {
         text: pesan,
         contextInfo: {
             forwardingScore: 9999999,
