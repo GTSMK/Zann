@@ -16,8 +16,8 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
     "@fizzxydev/baileys-pro": "npm:@fizzxydev/baileys-pro@latest",
-    "@google/genai": "*",
     "@hapi/boom": "^10.0.1",
+    "@google/generative-ai": "*",
     "@neoxr/quote-api": "^1.1.1-dev",
     "@whiskeysockets/baileys": "npm:@whiskeysockets/baileys@6.6.0",
     "api-dylux": "^1.8.3",
